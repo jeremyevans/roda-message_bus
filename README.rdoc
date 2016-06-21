@@ -1,0 +1,73 @@
+= roda-message_bus
+
+roda-message_bus integrates message_bus into the roda web toolkit,
+allowing you to call message_bus only for specific paths, after
+any access control checks have been made.
+
+= Installation
+
+  gem install roda-message_bus
+
+= Source Code
+
+Source code is available on GitHub at
+https://github.com/jeremyevans/roda-message_bus
+
+= Usage
+
+roda-message_bus is a roda plugin, so you need to load it into your roda
+application similar to other plugins:
+
+  class App < Roda
+    plugin :message_bus
+  end
+
+In your routing block, you can use +r.message_bus+ to pass the routing
+to message bus.  Generally you'll want to do this after making any
+access control checks:
+
+  App.route do |r|
+    r.on "room/:id" do |room_id|
+      room_id = room_id.to_i
+      raise unless current_user.has_access?(room_id)
+  
+      # Allows "/room/#{room_id}" channel by default
+      r.message_bus
+
+      view(:room)
+    end
+  end
+
+Routing will halt in +r.message_bus+ if the request is a message_bus
+request.  If the request is not a message_bus request, execution will
+continue without yielding.
+
+If you want to, you can force a specific message_bus channel (or channels
+by passing an array) when calling r.message_bus:
+
+  # Override channel to use (can also provide array of channels)
+  r.message_bus("/room/#{room_id}/enters")
+
+If you pass a block to +r.message_bus+, it will be yielded to only
+if this is a message_bus request.
+
+  r.message_bus do
+    # executed right before passing control to message_bus
+  end
+
+For roda-message_bus to work, in your MessageBus javascript code, you must
+set the +baseUrl+ to match the routing tree branch where you are calling
++r.message_bus+:
+
+  <script type="text/javascript" src="/message-bus.js"></script>
+  <script type="text/javascript">
+    MessageBus.baseUrl = "<%= request.path_info %>/";
+  </script>
+
+= License
+
+MIT
+
+= Author
+
+Jeremy Evans <code@jeremyevans.net>
