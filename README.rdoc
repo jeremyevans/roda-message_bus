@@ -48,6 +48,9 @@ by passing an array) when calling r.message_bus:
   # Override channel to use (can also provide array of channels)
   r.message_bus("/room/#{room_id}/enters")
 
+If you are calling +r.message_bus+ at the top of the routing tree, you
+will need to pass the channel (or channels) you wish to use.
+
 If you pass a block to +r.message_bus+, it will be yielded to only
 if this is a message_bus request.
 
