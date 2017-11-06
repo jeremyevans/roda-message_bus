@@ -12,7 +12,7 @@ end
 
 desc "Run specs"
 task :spec do
-  sh "#{FileUtils::RUBY} -rubygems -I lib spec/roda-message_bus_spec.rb"
+  sh "#{FileUtils::RUBY} -I lib spec/roda-message_bus_spec.rb"
 end
 
 task :default => :spec
