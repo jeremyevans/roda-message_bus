@@ -18,4 +18,5 @@ END
   s.add_dependency('message_bus', '>=2.0.0')
   s.add_dependency('roda', '>=2.0.0')
   s.add_development_dependency('minitest')
+  s.add_development_dependency "minitest-global_expectations"
 end

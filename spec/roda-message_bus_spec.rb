@@ -2,7 +2,7 @@ require 'roda'
 require 'message_bus'
 require 'json'
 ENV['MT_NO_PLUGINS'] = '1' # Work around stupid autoloading of plugins
-require 'minitest/autorun'
+require 'minitest/global_expectations/autorun'
 
 MessageBus.configure(:backend => :memory)
 
