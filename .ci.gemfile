@@ -1,0 +1,14 @@
+source 'https://rubygems.org'
+
+gem "rake"
+gem "minitest-global_expectations"
+
+if RUBY_VERSION >= '2'
+  gem "roda"
+  gem "message_bus"
+  gem 'json'
+else
+  gem "roda", '2.0.0'
+  gem "message_bus", '2.0.0'
+  gem 'json', '<1.8.5'
+end
