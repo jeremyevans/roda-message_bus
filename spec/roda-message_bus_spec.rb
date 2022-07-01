@@ -1,10 +1,21 @@
+if ENV.delete('COVERAGE')
+  require 'simplecov'
+
+  SimpleCov.start do
+    enable_coverage :branch
+    add_filter "/spec/"
+    add_group('Missing'){|src| src.covered_percent < 100}
+    add_group('Covered'){|src| src.covered_percent == 100}
+  end
+end
+
 require 'roda'
 require 'message_bus'
 require 'json'
 ENV['MT_NO_PLUGINS'] = '1' # Work around stupid autoloading of plugins
 require 'minitest/global_expectations/autorun'
 
-MessageBus.configure(:backend => :memory)
+$: << File.join(File.dirname(File.dirname(__FILE__)), 'lib')
 
 describe 'roda message_bus plugin' do
   def req(path, input={}, env={})
@@ -26,7 +37,9 @@ describe 'roda message_bus plugin' do
 
   before do
     @app = Class.new(Roda)
-    @app.plugin :message_bus
+    @bus = MessageBus::Instance.new
+    @bus.configure(:backend => :memory)
+    @app.plugin :message_bus, :message_bus=>@bus
     @app
   end
 
@@ -40,11 +53,50 @@ describe 'roda message_bus plugin' do
 
     body('/foo').must_equal 'bar'
     json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal []
-    MessageBus.publish '/foo', 'baz'
+    @bus.publish '/foo', 'baz'
     json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}]
-    MessageBus.publish '/foo', 'baz1'
+    @bus.publish '/foo', 'baz1'
     json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}, {"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
     json_body('/foo/message-bus/1/poll', '/foo'=>'1', '__seq'=>1).must_equal [{"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
+    json_body('/foo/message-bus/1/poll', '/foo'=>'1').must_equal [{"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
+    json_body('/foo/message-bus/1/poll', '/bar'=>'0', '__seq'=>1).must_equal []
+  end
+
+  it "should handle message bus with specific channels" do
+    @app.route do |r|
+      r.on "foo" do
+        r.message_bus('/foo')
+        'bar'
+      end
+    end
+
+    body('/foo').must_equal 'bar'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal []
+    @bus.publish '/foo', 'baz'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}]
+    @bus.publish '/foo', 'baz1'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0', '__seq'=>1).must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}, {"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
+    json_body('/foo/message-bus/1/poll', '/foo'=>'1', '__seq'=>1).must_equal [{"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
+    json_body('/foo/message-bus/1/poll', '/foo'=>'1').must_equal [{"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
+    json_body('/foo/message-bus/1/poll', '/bar'=>'0', '__seq'=>1).must_equal []
+  end
+
+  it "should support block passed to r.message_bus" do
+    @app.route do |r|
+      r.on "foo" do
+        r.message_bus do
+          r.POST['__seq'] = 1
+        end
+        "bar#{r.POST['__seq']}"
+      end
+    end
+
+    body('/foo').must_equal 'bar'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0').must_equal []
+    @bus.publish '/foo', 'baz'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0').must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}]
+    @bus.publish '/foo', 'baz1'
+    json_body('/foo/message-bus/1/poll', '/foo'=>'0').must_equal [{"global_id"=>1, "message_id"=>1, "channel"=>"/foo", "data"=>"baz"}, {"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
     json_body('/foo/message-bus/1/poll', '/foo'=>'1').must_equal [{"global_id"=>2, "message_id"=>2, "channel"=>"/foo", "data"=>"baz1"}]
   end
 end

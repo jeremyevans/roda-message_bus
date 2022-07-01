@@ -11,10 +11,16 @@ end
 
 desc "Run specs"
 task :spec do
-  sh "#{FileUtils::RUBY} #{"-w" if RUBY_VERSION >= '3'} -I lib spec/roda-message_bus_spec.rb"
+  sh "#{FileUtils::RUBY} #{"-w" if RUBY_VERSION >= '3'} spec/roda-message_bus_spec.rb"
 end
 
 task :default => :spec
+
+desc "Run specs with coverage"
+task :spec_cov do
+  ENV['COVERAGE'] = '1'
+  sh "#{FileUtils::RUBY} spec/roda-message_bus_spec.rb"
+end
 
 ### RDoc
 
