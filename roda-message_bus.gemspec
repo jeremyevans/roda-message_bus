@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.author = "Jeremy Evans"
   s.email = "code@jeremyevans.net"
   s.homepage = "https://github.com/jeremyevans/roda-message_bus"
-  s.files = %w(MIT-LICENSE CHANGELOG README.rdoc Rakefile) + Dir["{spec,lib}/**/*.rb"]
+  s.files = %w(MIT-LICENSE CHANGELOG README.rdoc) + Dir["lib/**/*.rb"]
   s.description = <<END
 roda-message_bus integrates message_bus into the roda web toolkit,
 allowing you to call message_bus only for specific paths, after
