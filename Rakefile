@@ -11,7 +11,7 @@ end
 
 desc "Run specs"
 task :spec do
-  sh "#{FileUtils::RUBY} #{"-w" if RUBY_VERSION >= '3'} spec/roda-message_bus_spec.rb"
+  sh "#{FileUtils::RUBY} #{"-w" if RUBY_VERSION >= '3'} #{'-W:strict_unused_block' if RUBY_VERSION >= '3.4'} spec/roda-message_bus_spec.rb"
 end
 
 task :default => :spec
