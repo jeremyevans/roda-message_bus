@@ -24,11 +24,24 @@ end
 
 ### RDoc
 
-require "rdoc/task"
+desc "Generate rdoc"
+task :rdoc do
+  rdoc_dir = "rdoc"
+  rdoc_opts = ["--line-numbers", "--inline-source", '--title', 'roda-message_bus: MessageBus integration for Roda']
 
-RDoc::Task.new do |rdoc|
-  rdoc.rdoc_dir = "rdoc"
-  rdoc.options += ['--inline-source', '--line-numbers', '--title', 'roda-message_bus: MessageBus integration for Roda', '--main', 'README.rdoc', '-f', 'hanna']
-  rdoc.rdoc_files.add %w"README.rdoc CHANGELOG MIT-LICENSE lib/**/*.rb"
+  begin
+    gem 'hanna'
+    rdoc_opts.concat(['-f', 'hanna'])
+  rescue Gem::LoadError
+  end
+
+  rdoc_opts.concat(['--main', 'README.rdoc', "-o", rdoc_dir] +
+    %w"README.rdoc CHANGELOG MIT-LICENSE" +
+    Dir["lib/**/*.rb"]
+  )
+
+  FileUtils.rm_rf(rdoc_dir)
+
+  require "rdoc"
+  RDoc::RDoc.new.document(rdoc_opts)
 end
-
