@@ -49,8 +49,14 @@ class Roda
       end
 
       module ClassMethods
-        def message_bus_app
-          opts[:message_bus_app]
+        if Roda::RodaPlugins.respond_to?(:opt_attr_reader)
+          Roda::RodaPlugins.opt_attr_reader(self, :message_bus_app)
+        # simplecov:disable
+        else
+          def message_bus_app
+            opts[:message_bus_app]
+          end
+        # simplecov:enable
         end
       end
 

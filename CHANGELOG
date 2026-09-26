@@ -1,3 +1,7 @@
+=== master
+
+* Use Roda::RodaPlugins.opt_attr_reader if available for slight performance improvement (jeremyevans)
+
 === 1.0.0 (2016-06-21)
 
 * Initial Public Release
